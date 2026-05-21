@@ -68,6 +68,12 @@ uv run examples/push_stepfun_balance_3.7.py --preview-only
 # 离线调试 StepFun 布局
 uv run examples/push_stepfun_balance.py --input-json examples/fixtures/stepfun_account.sample.json --preview-only
 
+# DeepSeek 账户余额（默认读 ~/.claude/settings.json 的 env.DEEPSEEK_API_KEY）
+uv run examples/push_deepseek_balance.py --preview-only
+uv run examples/push_deepseek_balance_3.7.py --preview-only
+uv run examples/push_deepseek_balance.py --api-key sk-xxx --preview-only
+uv run examples/push_deepseek_balance.py --input-json examples/fixtures/deepseek_balance.sample.json --preview-only
+
 # 自定义标题和颜色
 uv run bluetag text "会议室A 三楼" --title "指引" --title-color red
 
@@ -109,7 +115,22 @@ uv run bluetag push photo.png -i 80
 
 现金占比：比例行 `¥(voucher-balance) / ¥voucher`，`X.X% left = balance / voucher × 100`；进度条黑色为已用（`used/voucher`），白色为剩余。
 
-凭证：`STEPFUN_API_KEY` 环境变量或 `--api-key`。API 为 `GET https://api.StepFun.com/v1/accounts`（可用 `STEPFUN_BASE_URL` 覆盖）。
+凭证：`STEPFUN_API_KEY` 环境变量或 `--api-key`。API 为 `GET https://api.stepfun.com/v1/accounts`（可用 `STEPFUN_BASE_URL` 覆盖）。
+
+**额外说明：DeepSeek 账户余额推送**
+
+| 屏幕 | 布局要点 |
+|------|----------|
+| 2.13 / 3.7 寸 | 与 StepFun 相同（进度条 + 比例行 + TYPE/CASH 底栏） |
+
+凭证优先级：`--api-key` > `~/.claude/settings.json` 的 `env.DEEPSEEK_API_KEY`（或 `ANTHROPIC_AUTH_TOKEN`）> 环境变量。API 为 `GET https://api.deepseek.com/user/balance`，默认币种 CNY（`--currency USD` 可切换）。
+
+| API 字段 | 含义 | 屏上展示 |
+|----------|------|----------|
+| `total_balance` | 总可用余额 | 比例行分母、`% left` |
+| `granted_balance` | 赠金余额 | 比例行分子、进度条黑色占比 |
+| `topped_up_balance` | 充值余额 | 底栏 CASH |
+| `currency` | 币种 | 底栏 TYPE |
 
 ## Python API
 
@@ -175,9 +196,13 @@ bbtag/
 │   ├── push_kimi_usage_3.7.py    #   Kimi usage -> 3.7 寸
 │   ├── push_macos_app_usage_3.7.py # macOS app usage -> 3.7 寸
 │   ├── push_crypto_binance_price.py # 币价 -> 2.13 寸
+│   ├── balance_ratio_common.py     # 余额面板模型与比例计算（StepFun/DeepSeek 共用）
 │   ├── stepfun_account_common.py   # StepFun /accounts 解析
 │   ├── push_stepfun_balance.py     # StepFun 余额 -> 2.13 寸
 │   ├── push_stepfun_balance_3.7.py # StepFun 余额 -> 3.7 寸
-│   └── fixtures/stepfun_account.sample.json
+│   ├── deepseek_balance_common.py  # DeepSeek /user/balance 解析
+│   ├── push_deepseek_balance.py    # DeepSeek 余额 -> 2.13 寸
+│   ├── push_deepseek_balance_3.7.py
+│   └── fixtures/                   # stepfun_account.sample.json, deepseek_balance.sample.json
 └── pyproject.toml
 ```
